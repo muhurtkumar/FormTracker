@@ -5,6 +5,17 @@ function getFormTitle() {
     return titleEl ? titleEl.innerText : document.title;
 }
 
+function isFinalSubmissionScreen() {
+    // Look for confirmation text block
+    const confirmationText = document.querySelector("div[role='heading'] + div");
+
+    if (!confirmationText) return false;
+
+    const text = confirmationText.innerText.toLowerCase();
+
+    return text.includes("response") || text.includes("submitted");
+}
+
 function captureSubmission() {
     if (alreadyCaptured) return;
 
@@ -24,21 +35,17 @@ function captureSubmission() {
     });
 }
 
-// Google Forms always redirects to /formResponse after submit
-function detectByURL() {
-    if (window.location.href.includes("formResponse")) {
-        captureSubmission();
-    }
-}
-
 function observePage() {
     const observer = new MutationObserver(() => {
-        detectByURL();
+        if (isFinalSubmissionScreen()) {
+            captureSubmission();
+        }
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
 }
 
-// Run once + keep observing
-detectByURL();
 observePage();
